@@ -1,0 +1,19 @@
+{
+  "name": "dotbless",
+  "version": "0.0.0",
+  "description": "Dotfiles Framework",
+  "main": "index.js",
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jwerle/.bless.git"
+  },
+  "keywords": [
+    "dotfiles",
+    "framework"
+  ],
+  "author": "Joseph Werle <joseph.werle@gmail.com>",
+  "license": "MIT"
+}

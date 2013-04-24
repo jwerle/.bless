@@ -2,12 +2,30 @@ export declare BLESS_BIN_NAME="dotbless"
 
 set -e
 
-require bless/utils
 
+##
+# Utils
+##
+require "bless/utils"
+
+
+##
+# Completion
+##
+require "completion"
+
+
+##
+# Bless command usage
+##
 function BlessUsage () {
 	echo
 }
 
+
+##
+# Bless command invocation
+##
 function BlessCommand () {
 	local RET lib args commands excluded command
 	command=${BLESS_ARGS[0]}

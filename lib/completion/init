@@ -1,0 +1,26 @@
+## Completion construct
+function completion () {
+	local libs lib cur
+	libs=$(CompletionList)
+	echo $libs
+	cur=${COMP_WORDS[COMP_CWORD]}
+  COMPREPLY=( $(compgen -W ${libs} -- $cur) )
+}
+
+function CompletionList () {
+	# Grab the all of the libs
+	declare -a libs=( `ls $BLESS_DIR/lib` );
+	# Libs excluded from completion
+	declare -a excluded=( "completion" "bless" );
+
+	# loop and remove libs that appear in the excluded array
+	for lib in ${excluded[@]}; do
+		declare -a libs=( ${libs[@]/$lib/} )
+	done
+
+	if [[ ! -z "${BLESS_ARGS[@]}" ]]; then
+		echo $(dotbless ${BLESS_ARGS[@]} --completions)
+	else
+		echo ${libs[@]}
+	fi
+}

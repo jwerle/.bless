@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+declare USER=`whoami`
+declare HOME_DIR=$(eval echo ~${USER})
+declare BLESS_DIR=$HOME_DIR/.bless
+declare -a BLESS_ARGS=( "$@" )
+
+## loader
+function require () {
+	local root=$BLESS_DIR/lib/$1
+	if test -f $root/index; 
+		then root=$root/index;
+	elif test -f $root/init
+		then root=$root/init;
+	elif test -f $root/$1
+		then root=$root/$1
+	fi;
+
+	if test -f "$root"; then
+		source $root;
+	else return 1;
+	fi
+}
+
+##
+# Core
+## 
+require bless
+
+
+##
+# Completion
+##
+require completion
+
+
+## commands
+case "${BLESS_ARGS[0]}" in
+	--completions )
+		## shift off the first element
+		unset BLESS_ARGS[0]
+		CompletionList ${BLESS_ARGS[@]}
+	;;
+	--init )
+		# call bless init.
+		# should only be called internal from .blessrc
+		# Pass Completion to `complete`
+		
+	;;
+
+	# catch all
+	* )
+		BlessCommandCompletions ${BLESS_ARGS[0]}
+	;;
+esac;

@@ -1,0 +1,40 @@
+export declare BLESS_BIN_NAME="dotbless"
+
+set -e
+
+function BlessTODO () {
+	echo "TODO"
+}
+
+function BlessInit () {
+	BlessTODO
+}
+
+function BlessCommandCompletions () {
+	local RET lib args commands excluded command
+	command=${BLESS_ARGS[0]}
+	
+	if [ ${BLESS_ARGS[0]:0:1} != "-" ]; then
+		unset ${BLESS_ARGS[0]}
+	fi
+
+	declare -a args=(${BLESS_ARGS[@]})
+	require "$command"
+	RET=$?
+
+	if [[ $RET ]]; then
+		if [ "${args[1]}" = "--completions" ]; then
+			# Grab the all of the commands
+			declare -a commands=( `ls $BLESS_DIR/lib/$command` );
+			# Libs excluded from completion
+			declare -a excluded=( "completion" "init" );
+
+			# loop and remove commands that appear in the excluded array
+			for lib in ${excluded[@]}; do
+				declare -a commands=( ${commands[@]/$lib/} )
+			done
+			
+			echo ${commands[@]}
+		fi
+	fi
+}

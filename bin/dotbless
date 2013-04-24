@@ -49,6 +49,6 @@ case "${BLESS_ARGS[0]}" in
 
 	# catch all
 	* )
-		BlessCommandCompletions ${BLESS_ARGS[0]}
+		BlessCommand ${BLESS_ARGS[0]}
 	;;
 esac;

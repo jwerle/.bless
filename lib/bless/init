@@ -2,6 +2,8 @@ export declare BLESS_BIN_NAME="dotbless"
 
 set -e
 
+require bless/utils
+
 function BlessTODO () {
 	echo "TODO"
 }
@@ -10,12 +12,14 @@ function BlessInit () {
 	BlessTODO
 }
 
-function BlessCommandCompletions () {
+function BlessCommand () {
 	local RET lib args commands excluded command
 	command=${BLESS_ARGS[0]}
 	
-	if [ ${BLESS_ARGS[0]:0:1} != "-" ]; then
-		unset ${BLESS_ARGS[0]}
+	if ! [[ -z "$BLESS_ARGS" ]]; then
+		if [ ${BLESS_ARGS[0]:0:1} != "-" ]; then
+			unset ${BLESS_ARGS[0]}
+		fi
 	fi
 
 	declare -a args=(${BLESS_ARGS[@]})
@@ -26,15 +30,24 @@ function BlessCommandCompletions () {
 		if [ "${args[1]}" = "--completions" ]; then
 			# Grab the all of the commands
 			declare -a commands=( `ls $BLESS_DIR/lib/$command` );
+
 			# Libs excluded from completion
 			declare -a excluded=( "completion" "init" );
 
 			# loop and remove commands that appear in the excluded array
 			for lib in ${excluded[@]}; do
-				declare -a commands=( ${commands[@]/$lib/} )
+				declare -a commands=( ${commands[@]/$lib/} );
 			done
-			
-			echo ${commands[@]}
+
+			if [[ $(type -t "${command}Completions") = "function" ]]; then
+				commands+=($(${command}Completions))
+			fi
+
+			## output completions
+			echo ${commands[@]};
+		elif [[ $(type -t "${command}Init") = "function" ]]; then
+			## call it!
+			${command}Init;
 		fi
 	fi
 }

@@ -1,0 +1,38 @@
+declare pkgmngr=''
+
+
+function setupInit () {
+	local manager managers
+	## possible package managers
+	declare -a managers=("brew" "yum" "apt-get" "ports")
+
+	## loop and attempt to verify that
+	## the command exists
+	for manager in ${managers[@]}; do
+		if hasCommand "$manager"; then
+			pkgmngr=$manager
+		fi
+	done
+
+	## maybe an override was provided?
+	manager="$(flagValue "manager")"
+
+	## if there was a manager then lets
+	## override the the pkgmngr setting
+	if [ "$manager" ]; then
+		pkgmngr="$manager"
+	fi
+
+	## if we couldn't determine a package manager
+	## then we need to exit now..
+	if [[ -z $pkgmngr ]]; then
+		echo "Couldn't determine a supporter package manager. Please provide one via the --manager flag"
+		exit 1;
+	fi
+
+	
+}
+
+function setupCompletions () {
+	echo "--manager"
+}

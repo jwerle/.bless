@@ -1,0 +1,38 @@
+function hasCommand () {
+	if command -v $1 >/dev/null 2>&1; then true;
+	else false;
+	fi
+}
+
+function flagValue () {
+	local flag value found
+	flag="--$1"
+	found=false
+	for arg in "${BLESS_ARGS[@]}"; do
+		if $found; then
+			echo $arg;
+			break;
+		fi
+
+		if [ "$arg" = "$flag" ]; then
+			found=true;
+		fi
+	done
+}
+
+function BlessRequirements () {
+	local commands
+	declare -a commands=("git" "ruby" "node")
+	echo ${commands[@]}
+}
+
+function checkPrereqs () {	
+	local commands
+	commands=$(BlessRequirements)
+	for command in ${commands[@]}; do
+		if ! command -v $command >/dev/null 2>&1; then
+			echo "Missing '$command' from system. Please install to use Bless.";
+			exit 1
+		fi
+	done
+}

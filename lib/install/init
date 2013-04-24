@@ -1,0 +1,4 @@
+function installInit () {
+	## check that everything is installed
+	checkPrereqs	
+}

@@ -1,11 +1,26 @@
+## Package manager
 declare pkgmngr=''
 
 
+##
+# Setup Completions
+##
+function setupCompletions () {
+	echo "--manager"
+}
+
+
+##
+# Setup Initializer
+##
 function setupInit () {
-	local manager managers
+	## local variables
+	local manager managers requirements RET out
+
 	## possible package managers
 	declare -a managers=("brew" "yum" "apt-get" "ports")
 
+	echo "Determining package manager..";
 	## loop and attempt to verify that
 	## the command exists
 	for manager in ${managers[@]}; do
@@ -26,13 +41,47 @@ function setupInit () {
 	## if we couldn't determine a package manager
 	## then we need to exit now..
 	if [[ -z $pkgmngr ]]; then
-		echo "Couldn't determine a supporter package manager. Please provide one via the --manager flag"
+		echo "Couldn't determine a supporter package manager."
+		echo "Please provide one via the --manager flag."
 		exit 1;
+	else
+		echo "Using ${pkgmngr} as a package manager.";
 	fi
 
-	
-}
+	## load requirments
+	declare -a requirements="$(BlessRequirements)";
 
-function setupCompletions () {
-	echo "--manager"
+	echo "Installing system requirements..";
+	## loop and install each
+	for requirement in ${requirements[@]}; do
+		if hasCommand "$requirement"; then
+			echo
+			echo "$pkgmngr[$requirement] :: installing.."
+
+			## execute install via package manager
+			out=$(
+				$pkgmngr install $requirement
+			) || true; ## force true value to continue on
+			
+			## capture return code
+			RET=$?
+			if [[ $RET ]]; then
+				echo "$requirement failed to install"
+				echo
+			fi
+		fi
+	done
+
+	echo "Installing node modules.."
+	## install node modules
+	$(
+		cd ~/.bless;
+		npm install . >/dev/null 2>&1;
+	)
+	
+	## let the user know it went well
+	echo "Looks like everything went well! =)";
+	
+	## exit code 0
+	exit 0;
 }

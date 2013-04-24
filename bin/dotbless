@@ -49,6 +49,10 @@ case "${BLESS_ARGS[0]}" in
 
 	# catch all
 	* )
-		BlessCommand ${BLESS_ARGS[0]}
+		if [[ -z ${BLESS_ARGS[@]} ]]; then
+			BlessUsage
+		else
+			BlessCommand ${BLESS_ARGS[0]}
+		fi
 	;;
 esac;

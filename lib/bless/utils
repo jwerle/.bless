@@ -22,7 +22,7 @@ function flagValue () {
 
 function BlessRequirements () {
 	local commands
-	declare -a commands=("git" "ruby" "node")
+	declare -a commands=("git" "ruby" "node" "npm")
 	echo ${commands[@]}
 }
 

@@ -21,6 +21,6 @@ function CompletionList () {
 	if [[ ! -z "${BLESS_ARGS[@]}" ]]; then
 		echo $(dotbless ${BLESS_ARGS[@]} --completions)
 	else
-		echo ${libs[@]}
+		echo "--completions --version" ${libs[@]}
 	fi
 }

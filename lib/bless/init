@@ -4,12 +4,8 @@ set -e
 
 require bless/utils
 
-function BlessTODO () {
-	echo "TODO"
-}
-
-function BlessInit () {
-	BlessTODO
+function BlessUsage () {
+	echo
 }
 
 function BlessCommand () {

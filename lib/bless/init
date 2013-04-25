@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 export declare BLESS_BIN_NAME="dotbless"
 
 set -e

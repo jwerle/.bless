@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ## Completion construct
 function CompletionList () {
 	# Grab the all of the libs

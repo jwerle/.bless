@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ## usage
 function profileUsage () {
 	## get supported profiles

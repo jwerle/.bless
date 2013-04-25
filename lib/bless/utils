@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 function hasCommand () {
 	if command -v $1 >/dev/null 2>&1; then true;
 	else false;
@@ -5,7 +6,7 @@ function hasCommand () {
 }
 
 function hasFlag () {
-	found=false
+	declare local found=false
 	for arg in ${BLESS_ARGS[@]}; do
 		if [ "$arg" = "$1" ]; then found=true; fi
 	done

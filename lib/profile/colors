@@ -1,0 +1,10 @@
+##
+# Profile Colors Usage
+##
+function colorsUsage () {
+	echo "Manage your profile colors configuration";
+}
+
+function colorsInit () {
+	echo "foo"
+}

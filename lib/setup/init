@@ -3,6 +3,13 @@ declare pkgmngr=''
 
 
 ##
+# Setup Usage
+##
+function setupUsage () {
+	echo "Sets up dotbless and installs all of its dependencies. This should only be ran once. Use 'update' to update dotbless."
+}
+
+##
 # Setup Completions
 ##
 function setupCompletions () {
@@ -44,17 +51,21 @@ function setupInit () {
 		echo "Couldn't determine a supporter package manager."
 		echo "Please provide one via the --manager flag."
 		exit 1;
+	elif ! command -v $pkgmngr >/dev/null 2>&1; then
+		echo "Command for ${pkgmngr} does not exist.";
+		echo "Please provide a valid package manger via the --manager flag";
+		exit 1;
 	else
 		echo "Using ${pkgmngr} as a package manager.";
 	fi
 
 	## load requirments
-	declare -a requirements="$(BlessRequirements)";
+	declare -a requirements="$(getRequirements)";
 
 	echo "Installing system requirements..";
 	## loop and install each
 	for requirement in ${requirements[@]}; do
-		if hasCommand "$requirement"; then
+		if ! hasCommand "$requirement"; then
 			echo
 			echo "$pkgmngr[$requirement] :: installing.."
 
@@ -78,6 +89,11 @@ function setupInit () {
 		cd ~/.bless;
 		npm install . >/dev/null 2>&1;
 	)
+
+	echo "Running setup scripts.."
+	for script in $BLESS_DIR/lib/scripts/setup/*; do
+		exec $script
+	done
 	
 	## let the user know it went well
 	echo "Looks like everything went well! =)";

@@ -14,12 +14,28 @@ require "bless/utils"
 ##
 require "completion"
 
+##
+# Flag
+##
+require "flags"
+
 
 ##
 # Bless command usage
 ##
 function BlessUsage () {
-	echo
+	local name="dotbless"
+	declare -a local commands=( $(BlessListCommands) )
+	declare -a local flags=( $(dotbless flags) )
+	Usage $name commands[@] flags[@]
+}
+
+
+##
+# Lists all Bless commands
+##
+function BlessListCommands () {
+	CompletionList all
 }
 
 
@@ -27,15 +43,20 @@ function BlessUsage () {
 # Bless command invocation
 ##
 function BlessCommand () {
-	local RET lib args commands excluded command
-	command=${BLESS_ARGS[0]}
+	local RET lib args commands excluded
+	declare local command=$1
+	declare -a local parts=( $(commandFromPath "$command") )
+	declare local tail="${parts[ $(expr ${#parts[@]} - 1) ]}"
 	
 	if ! [[ -z "$BLESS_ARGS" ]]; then
-		if [ ${BLESS_ARGS[0]:0:1} != "-" ]; then
-			unset ${BLESS_ARGS[0]}
+		if [ ${BLESS_ARGS[0]:0:1} != "-" ] &&
+			 [ ${BLESS_ARGS[0]:0:1} != "<" ] &&
+			 [ ${BLESS_ARGS[0]:0:1} != ">" ]; 
+			then unset ${BLESS_ARGS[0]};
 		fi
 	fi
 
+	#echo "c" $command
 	declare -a args=(${BLESS_ARGS[@]})
 	require "$command"
 	RET=$?
@@ -53,15 +74,33 @@ function BlessCommand () {
 				declare -a commands=( ${commands[@]/$lib/} );
 			done
 
-			if [[ $(type -t "${command}Completions") = "function" ]]; then
-				commands+=($(${command}Completions))
+			if [[ $(type -t "${tail}Completions") = "function" ]]; then
+				commands+=($(${tail}Completions))
 			fi
 
 			## output completions
 			echo ${commands[@]};
-		elif [[ $(type -t "${command}Init") = "function" ]]; then
+			exit 0;
+		fi
+
+		
+		#echo $tail
+		if hasFlag "--usage"  && [ "$tail" = "$command" ]; then
+			tail=$(lastCommand args[@])
+			
+			if [ "$tail" != "$command" ]; then
+				require "${command}/${tail}"
+			fi
+
+			if [[ $(type -t "${tail}Usage") = "function" ]]; then
+				## call it!
+				${tail}Usage;
+				## exit afer we display it
+				exit 0
+			fi
+		elif [[ $(type -t "${tail}Init") = "function" ]]; then
 			## call it!
-			${command}Init;
+			${tail}Init;
 		fi
 	fi
 }

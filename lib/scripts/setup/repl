@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+export REPL_BIN=~/.bless/bin/repl
+curl -s https://raw.github.com/defunkt/repl/latest/bin/repl > $REPL_BIN
+chmod 755 $REPL_BIN
+if ! test -d ~/.repl; then
+	echo "Creating .repl directory in ~/.repl"
+	git clone git://github.com/defunkt/repl-completion.git ~/.repl
+fi
+
+test -f ~/.repl/dotbless && rm ~/.repl/dotbless
+dotbless commands > ~/.repl/dotbless

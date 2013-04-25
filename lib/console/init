@@ -1,0 +1,13 @@
+##
+# Console Usage
+##
+function consoleUsage () {
+	echo "Starts a REPL console session";
+}
+
+##
+# Console init
+##
+function consoleInit () {
+	repl dotbless
+}

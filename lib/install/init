@@ -1,3 +1,10 @@
+##
+# Install Usage
+##
+function installUsage () {
+	echo "Install dotbless or third-party packages";
+}
+
 function installInit () {
 	## check that everything is installed
 	checkPrereqs	

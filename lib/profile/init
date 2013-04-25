@@ -1,3 +1,31 @@
+## usage
+function profileUsage () {
+	## get supported profiles
+	declare -a local profiles=($(getSupportedProfiles))
+
+	## start output
+	printf "Manage your "
+
+	## loop and print profile
+	for profile in ${profiles[@]}; do
+		printf "$profile, "
+	done
+
+	# include .bless ;)
+	printf "and .blessrc profile files"
+}
+
+
+## init
 function profileInit () {
-	echo
+	declare local command=${BLESS_ARGS[1]}
+
+	## output usage when no profile commands are passed
+	if [[ -z "$command" ]]; then
+		declare -a local commands=( $(dotbless profile --completions) )
+		declare -a local flags=()
+		Usage "profile" commands[@] flags[@] true
+	else
+		BlessCommand "profile/${command}"
+	fi
 }

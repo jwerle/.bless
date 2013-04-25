@@ -4,11 +4,19 @@ function hasCommand () {
 	fi
 }
 
+function hasFlag () {
+	found=false
+	for arg in ${BLESS_ARGS[@]}; do
+		if [ "$arg" = "$1" ]; then found=true; fi
+	done
+	$found
+}
+
 function flagValue () {
 	local flag value found
 	flag="--$1"
 	found=false
-	for arg in "${BLESS_ARGS[@]}"; do
+	for arg in ${BLESS_ARGS[@]}; do
 		if $found; then
 			echo $arg;
 			break;
@@ -20,7 +28,7 @@ function flagValue () {
 	done
 }
 
-function BlessRequirements () {
+function getRequirements () {
 	local commands
 	declare -a commands=("git" "ruby" "node" "npm")
 	echo ${commands[@]}
@@ -28,11 +36,99 @@ function BlessRequirements () {
 
 function checkPrereqs () {	
 	local commands
-	commands=$(BlessRequirements)
+	commands=$(getRequirements)
 	for command in ${commands[@]}; do
 		if ! command -v $command >/dev/null 2>&1; then
 			echo "Missing '$command' from system. Please install to use Bless.";
 			exit 1
 		fi
 	done
+}
+
+
+function getSupportedProfiles () {
+	local profiles
+	# supported profile
+	declare -a profiles=(".bashrc" ".bash_profile" ".profile")
+	echo "${profiles[@]}"
+}
+
+function isProfileSupported () {
+	for profile in ${profiles[@]}; do
+		if [ "$1" = "$profile" ]; then
+			true
+			break;
+		fi
+	done
+
+	false
+}
+
+
+##
+# Usage construct
+# @param {string} $1 command
+# @param {array} $2 commands
+# @param {array} $3 flags
+##
+function Usage () {
+	## variables
+	local usage
+	declare local command=$1
+	declare -a local commands=(${!2})
+	declare -a local flags=(${!3})
+	declare local hasParent=$4
+	declare local parent=''
+
+	if $hasParent && [ "$command" != "dotbless" ]; then
+		parent="$command "
+	fi
+	echo
+	printf "  Usage: $command "
+
+	[ "${#commands[@]}" != "0" ] && printf "[command] ";
+	[ "${#flags[@]}" != "0" ] && printf "[options]";
+	echo
+
+	## if we have commmands lets show them
+	if [ "${#commands[@]}" != "0" ]; then
+		echo
+		echo "  Commands:"
+		echo
+		# output commands and there usage
+		for command in ${commands[@]}; do
+			declare usage="$(dotbless $parent $command --usage)"
+			echo "    $command 	$usage"
+		done
+	fi
+
+	## if we have options lets show them
+	if [ "${#flags[@]}" != "0" ]; then
+		echo
+		echo "  Options:"
+		# output flags and there purpose
+		for flag in ${flags[@]}; do
+			if [ "$flag" != "--completions" ]; then
+				echo "    $flag	$(flagsUsage $flag)";
+			fi
+		done
+	fi
+}
+
+
+function commandFromPath () {
+	echo $(echo "$1" | tr "/" " ")
+}
+
+function lastCommand () {
+	declare -a local commands=(${!1})
+	declare -a local clean=()
+
+	for command in ${commands[@]}; do
+		if [ ${command:0:1} != "-" ]; then
+			clean+=($command)
+		fi
+	done
+
+	echo ${clean[ $(expr ${#clean[@]} - 1) ]}
 }

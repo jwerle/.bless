@@ -1,0 +1,17 @@
+function flagsInit () {
+	local flags
+	declare -a flags=("--version" "--help")
+	echo ${flags[@]}
+}
+
+function flagsUsage () {
+	case "$1" in
+		--version|-v )
+			echo "Output the version number"
+		;;
+
+		--help|-h )
+			echo "Output usage information"
+		;;
+	esac
+}

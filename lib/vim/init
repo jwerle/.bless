@@ -1,0 +1,6 @@
+##
+# Vim Usage
+##
+function vimUsage () {
+	echo "Manage your vim configuration and bundles.";
+}

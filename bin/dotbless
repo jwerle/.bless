@@ -19,9 +19,11 @@ function require () {
 
 	if test -f "$root"; then
 		source $root;
-		true
-	else 
-		false
+		return 0
+	else
+		declare  local command="$(commandFromPath "$1")"
+		echo "dotbless: '${command}' is not a dotbless command. See 'dotbless --help'".
+		return 1
 	fi
 }
 
@@ -33,17 +35,30 @@ require "bless"
 
 ## commands
 case "${BLESS_ARGS[0]}" in
+	## output completions
 	--completions )
 		## shift off the first element
 		unset BLESS_ARGS[0]
 		CompletionList ${BLESS_ARGS[@]}
 	;;
-	--version )
+	
+	## output version
+	--version|-v )
 		echo $($BLESS_SCRIPTS/version)
 		exit 0;
 	;;
 
-	# catch all
+	## output help
+	--help|-h|help )
+		BlessUsage
+	;;
+
+	## exit alias
+	exit )
+		exit 0
+	;;
+
+	## catch all
 	* )
 		if [[ -z ${BLESS_ARGS[@]} ]]; then
 			BlessUsage

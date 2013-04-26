@@ -17,16 +17,31 @@ function profileUsage () {
 }
 
 
+## completions
+function profileCompletions () {
+	declare -a local completions=(
+		"help"
+	)
+
+	echo "${completions[@]}"
+}
+
+
 ## init
 function profileInit () {
 	declare local command=${BLESS_ARGS[1]}
+	declare -a local commands=( $(dotbless profile --completions) )
 
 	## output usage when no profile commands are passed
-	if [[ -z "$command" ]]; then
-		declare -a local commands=( $(dotbless profile --completions) )
+	if [[ -z "$command" ]] || requestingHelp; then
 		declare -a local flags=()
 		Usage "profile" commands[@] flags[@] true
 	else
-		BlessCommand "profile/${command}"
+		if ! inArray ${commands[@]} "$command"; then
+			invalidCommand "profile $command"
+			exit 1
+		else
+			BlessCommand "profile/${command}"
+		fi
 	fi
 }

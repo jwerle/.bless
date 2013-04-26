@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+function lsUsage () {
+	echo "	List all installed profiles"
+}
+
+function lsInit () {
+	local name description author version remote
+	declare -a local profiles=$(ls $BLESS_DIR/profiles)
+	## only outputing names if either of these flags are present
+	if ! (hasFlag "-n" || hasFlag "names"); then
+		echo
+		echo "dotbless profiles"
+		echo
+		echo "---"
+	fi
+
+	for profile in ${profiles[@]}; do
+		declare local conf;
+		conf=$(resolveProfileConf $profile)
+		if ! [ "$profile" ]; then continue; fi
+		bless.IniParser $conf
+		bless.section.profile
+
+		## only output name
+		if hasFlag "-n" || hasFlag "names"; then
+			echo $name
+		else
+			echo "[$name]" "-" '"'$description'"'
+			echo "    author  :" $author
+			echo "    version :" $version
+			echo "    remote  :" $remote
+			echo "---"
+		fi
+	done
+}

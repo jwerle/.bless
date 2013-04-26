@@ -1,5 +1,34 @@
 #!/usr/bin/env bash
+## usage
+function useUsage () {
+	echo "<profile-name> Accepts a profile name to use."
+}
+
+## usage
 function useInit () {
 	declare -a local args=( $(getArgs use) )
-	
+	declare local profile="${args[0]}"
+	declare -a local empty=()
+
+	if requestingHelp || [[ -z $profile ]]; then
+		Usage "profile use <profile-name>" $empty $empty
+	else
+		## read and parse profile conf
+		declare local conf=$(resolveProfileConf $profile)
+
+		if ! [ "$conf" ]; then
+			## output fatal message
+			fatal "Couldn't determine profile configuration for '$profile'"
+		fi
+
+		bless.IniParser $conf
+		bless.section.profile
+		if ! [[ -z $main ]]; then
+			declare local path="$BLESS_DIR/profiles/$profile"
+			echo $path/$main
+			if test -f $path/$main; then
+				echo $main;
+			fi
+		fi
+	fi
 }

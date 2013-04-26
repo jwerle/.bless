@@ -4,7 +4,7 @@ function CompletionList () {
 	# Grab the all of the libs
 	declare -a libs=( `ls $BLESS_DIR/lib` );
 	# Libs excluded from completion
-	declare -a excluded=( "completion" "bless" "commands" "flags" "scripts" "profiles");
+	declare -a excluded=( $(CompletionExcluded) );
 
 	# loop and remove libs that appear in the excluded array
 	for lib in ${excluded[@]}; do
@@ -18,4 +18,9 @@ function CompletionList () {
 	else
 		echo $(dotbless flags) ${libs[@]} # output flags and completions
 	fi
+}
+
+function CompletionExcluded () {
+	declare -a local excluded=( "init" "completion" "bless" "commands" "flags" "scripts" "profiles" "help" )
+	echo "${excluded[@]}"
 }

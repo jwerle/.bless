@@ -10,5 +10,9 @@ function consoleUsage () {
 # Console init
 ##
 function consoleInit () {
-	repl dotbless
+	if hasFlag "debug"; then
+		repl dotbless --debug
+	else
+		repl dotbless
+	fi
 }

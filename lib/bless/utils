@@ -1,11 +1,42 @@
 #!/usr/bin/env bash
-function hasCommand () {
+
+function die () {
+	declare local message=$1
+	declare -i local code=$2
+
+	[ "$message" ] && echo $message;
+	if ! [[ -z "$code" ]]; then
+		exit $code
+	else
+		exit 0
+	fi
+}
+
+function fatal () {
+	die "$1" 1
+}
+
+function hasInternalCommand () {
 	if command -v $1 >/dev/null 2>&1; then true;
 	else false;
 	fi
 }
 
 function hasFlag () {
+	declare local found=false
+	if ! [ "${1:0:1}" = "-" ]; then
+		declare local flag="--${1}"
+	else
+		declare local flag="${1}"
+	fi
+
+	for arg in ${BLESS_ARGS[@]}; do
+		if [ "$arg" = "$flag" ]; then found=true; fi
+	done
+	$found
+}
+
+function hasCommand () {
 	declare local found=false
 	for arg in ${BLESS_ARGS[@]}; do
 		if [ "$arg" = "$1" ]; then found=true; fi
@@ -124,6 +155,11 @@ function commandFromPath () {
 function lastCommand () {
 	declare -a local commands=(${!1})
 	declare -a local clean=()
+	declare -i local offset=1
+
+	if ! [[ -z $2 ]]; then
+		offset=$2
+	fi
 
 	for command in ${commands[@]}; do
 		if [ ${command:0:1} != "-" ]; then
@@ -131,7 +167,15 @@ function lastCommand () {
 		fi
 	done
 
-	echo ${clean[ $(expr ${#clean[@]} - 1) ]}
+	
+
+	if [ $(expr ${#clean[@]} - $offset) -lt 0 ]; then
+		offset=0
+	fi
+
+	#echo "o"$(expr ${#clean[@]} - $offset)
+	#echo "l"${#clean[@]}
+	echo ${clean[ $(expr ${#clean[@]} - $offset) ]}
 }
 
 function getArgs () {
@@ -146,3 +190,106 @@ function getArgs () {
 	done
 	echo ${args[@]:$(expr $i + 1)}
 }
+
+function requestingHelp () {
+	if hasFlag "help" || hasCommand "help" || hasFlag "-h"; then true
+	else false
+	fi
+}
+
+function stringToArray () {
+	read -a array <<< "$1"
+	echo "${array[@]}"
+}
+
+function invalidCommand () {
+	declare local command=$1
+	declare local type=$2
+
+	if [[ -z "$type" ]]; then
+		type="command"
+	fi
+
+	echo "dotbless: '${command}' is not a dotbless ${type}. See 'dotbless --help'".
+}
+
+function inArray () {
+	declare -a local array=$1
+	echo ${1}
+	declare local needle="$2"
+	for item in  ${array[@]}; do
+		echo $item
+		echo $needle
+	done
+}
+
+function lastElement () {
+	local foo="$1"
+	declare -a local array=("${!1}")
+	echo ${array[ $(expr ${#array[@]} - 1) ]}
+}
+
+
+function resolveProfileConf () {
+	declare local profile="$1"
+	if test -f "$BLESS_DIR/profiles/$profile/$profile.conf"; then
+		echo "$BLESS_DIR/profiles/$profile/$profile.conf"
+	elif test -f "$BLESS_DIR/profiles/$profile/$profile.ini"; then
+		echo "$BLESS_DIR/profiles/$profile/$profile.ini"
+	else
+		false
+	fi
+}
+
+## 
+# CFG INI Parser
+# @see http://ajdiaz.wordpress.com/2008/02/09/bash-ini-parser/
+##
+function bless.IniParser ()
+{
+  ini="$(<$1)"                # read the file
+  ini="${ini//[/\[}"          # escape [
+  ini="${ini//]/\]}"          # escape ]
+  IFS=$'\n' && ini=( ${ini} ) # convert to line-array
+  ini=( ${ini[*]//;*/} )      # remove comments with ;
+  ini=( ${ini[*]/\    =/=} )  # remove tabs before =
+  ini=( ${ini[*]/=\   /=} )   # remove tabs be =
+  ini=( ${ini[*]/\ =\ /=} )   # remove anything with a space around =
+  ini=( ${ini[*]/#\\[/\}$'\n'bless.section.} ) # set section prefix
+  ini=( ${ini[*]/%\\]/ \(} )    # convert text2function (1)
+  ini=( ${ini[*]/=/=\( } )    # convert item to array
+  ini=( ${ini[*]/%/ \)} )     # close array parenthesis
+  ini=( ${ini[*]/%\\ \)/ \\} ) # the multiline trick
+  ini=( ${ini[*]/%\( \)/\(\) \{} ) # convert text2function (2)
+  ini=( ${ini[*]/%\} \)/\}} ) # remove extra parenthesis
+  ini[0]="" # remove first element
+  ini[${#ini[*]} + 1]='}'    # add the last brace
+  #echo "${ini[*]}" # eval the result
+  eval "$(echo "${ini[*]}")" # eval the result
+}
+ 
+function bless.IniWriter ()
+{
+  IFS=' '$'\n'
+  fun="$(declare -F)"
+  fun="${fun//declare -f/}"
+  for f in $fun; do
+      [ "${f#bless.section}" == "${f}" ] && continue
+      item="$(declare -f ${f})"
+      item="${item##*\{}"
+      item="${item%\}}"
+      item="${item//=*;/}"
+      vars="${item//=*/}"
+      eval $f
+      echo "[${f#bless.section.}]"
+      for var in $vars; do
+          echo $var=\"${!var}\"
+      done
+  done
+}
+
+# bless.parser "${BLESS_DIR}/test/sample.ini"
+
+# bless.section.alias
+# echo $name
+# exit;

@@ -6,6 +6,71 @@ function colorsUsage () {
 	echo "Manage your profile colors configuration";
 }
 
+function colorsCompletions () {
+	echo "biz"
+}
+
 function colorsInit () {
-	echo "foo"
+	declare -a local args=( $(getArgs colors) )
+	declare -a local empty=()
+	declare -a local colors=(
+		"black" "red" "green" "yellow" "blue" 
+		"magenta" "cyan" "white" "gray"
+	)
+
+	if [[ "${#args[@]}" -eq 1 ]] && requestingHelp; then
+		Usage "profile colors - outputs builtin background and foreground colors " $empty $empty
+		exit 0
+	fi
+	
+	echo
+	echo "dotbless profile colors"
+	echo
+	echo "[Foreground colors] |"  "[Background colors]"
+	for color in ${colors[@]}; do
+		echo "--------------------  -------------------"
+		printf "$(color fg $color)$color$(color end)"
+		printf "		    | "
+		printf "$(color bg $color)$color$(color end)"
+		echo
+	done
+	
+}
+
+function color () {
+	case "${1}" in 
+		## background
+		bg|background )
+			case "${2}" in
+				black )       echo "$(tput setab 0)" ;;
+				red )         echo "$(tput setab 1)" ;;
+				green )       echo "$(tput setab 2)" ;;
+				yellow )      echo "$(tput setab 3)" ;;
+				blue )        echo "$(tput setab 4)" ;;
+				magenta )     echo "$(tput setab 5)" ;;
+				cyan )        echo "$(tput setab 6)" ;;
+				white )       echo "$(tput setab 7)" ;;
+				gray )        echo "$(tput setab 8)" ;;
+			esac
+		;;
+
+		## foreground
+		fg|foreground )
+			case "${2}" in
+				red )         echo "$(tput setaf 1)" ;;
+				green )       echo "$(tput setaf 2)" ;;
+				yellow )      echo "$(tput setaf 3)" ;;
+				blue )        echo "$(tput setaf 4)" ;;
+				magenta )     echo "$(tput setaf 5)" ;;
+				cyan )        echo "$(tput setaf 6)" ;;
+				white )       echo "$(tput setaf 7)" ;;
+				gray )        echo "$(tput setaf 8)" ;;
+			esac
+		;;
+
+		bold ) 			  echo "$(tput bold)" ;;
+		underline )   echo "$(tput sgr 0 1)" ;;
+		invert )      echo "$(tput sgr 1 0)" ;;
+		nocolor|end ) echo "$(tput sgr0)" ;;
+	esac
 }

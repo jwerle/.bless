@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# update path
+export PATH="$HOME/.bless/bin:$PATH"
+## init
+eval "$(dotbless --init-completions)"
+
+dotbless profile use werle

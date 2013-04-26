@@ -61,23 +61,48 @@ function BlessCommand () {
 	declare -a args=(${BLESS_ARGS[@]})
 	require "$command"
 	RET=$?
+	i=1
 
 	if [[ $RET ]]; then
-		if [ "${args[1]}" = "--completions" ]; then
-			# Grab the all of the commands
-			declare -a commands=( `ls $BLESS_DIR/lib/$command` );
+		tail=$(lastCommand args[@])
+		declare local	oldTail=$tail
+		
+		if [ "$tail" != "$command" ]; then
+			## loop until we find a proper require of a command
+			while ! require "${command}/${tail}" false; do
+				i=$(expr $i + 1)
+				tail=$(lastCommand args[@] $i)
+			done
+		fi 
+
+		if [[ -z "$tail" ]]; then
+			tail="$oldTail"
+		fi
+
+
+		if hasFlag "completions"; then
+
+			if [ "$tail" = "$command" ]; then
+				# Grab the all of the commands
+				declare -a commands=( `ls $BLESS_DIR/lib/$command` );
+			elif test -d "$BLESS_DIR/lib/$tail"; then
+				# Grab the all of the commands
+				declare -a commands=( `ls $BLESS_DIR/lib/$tail` );
+			fi
 
 			# Libs excluded from completion
-			declare -a excluded=( "completion" "init" );
+			declare -a excluded=( $(CompletionExcluded) );
+
+			#echo $tail
+			if [[ $(type -t "${tail}Completions") = "function" ]]; then
+				commands+=($(${tail}Completions))
+			fi
 
 			# loop and remove commands that appear in the excluded array
 			for lib in ${excluded[@]}; do
 				declare -a commands=( ${commands[@]/$lib/} );
 			done
 
-			if [[ $(type -t "${tail}Completions") = "function" ]]; then
-				commands+=($(${tail}Completions))
-			fi
 
 			## output completions
 			echo ${commands[@]};
@@ -86,12 +111,7 @@ function BlessCommand () {
 
 		
 		#echo $tail
-		if hasFlag "--usage"  && [ "$tail" = "$command" ]; then
-			tail=$(lastCommand args[@])
-			
-			if [ "$tail" != "$command" ]; then
-				require "${command}/${tail}"
-			fi
+		if hasFlag "usage"; then
 
 			if [[ $(type -t "${tail}Usage") = "function" ]]; then
 				## call it!
@@ -102,6 +122,16 @@ function BlessCommand () {
 		elif [[ $(type -t "${tail}Init") = "function" ]]; then
 			## call it!
 			${tail}Init;
+
+			exit 0
 		fi
+
+		echo $(invalidCommand "$command $tail")
+		exit 1
+	else
+		echo $(invalidCommand "$command $tail")
+		exit 1
 	fi
+
+	exit 0
 }

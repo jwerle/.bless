@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+function installUsage () {
+	echo "Install a profile"
+}
+
+function installInit () {
+	declare -a local args=( $(getArgs install) )
+	declare local profile="${args[0]}"
+	declare -a local empty=()
+
+	if requestingHelp || [[ -z $profile ]]; then
+		Usage "profile install <profile-name>" $empty $empty
+	else
+		declare local name="${args[0]}"
+		declare local host;
+
+		if hasFlag "host"; then
+			host="$(flagValue host)";
+		else
+			host="https://github.com"
+		fi
+
+		declare local url=$(buildUrl $name $host)
+		declare -a local parts=( $(commandFromPath "$name") )
+		declare local pname="$(lastElement parts[@])"
+
+		if test -d $BLESS_DIR/profiles/$pname &&
+			 test -f $BLESS_DIR/profiles/$pname/$pname.conf;
+			 then
+			 echo
+			 echo "dotbless: Profile '${pname}' is already installed."
+			 echo "dotbless: Use dotbless profile update ${pname} to update it";
+			 exit 0
+		else
+			echo "Installing ${pname}..."
+			mkdir dir $BLESS_DIR/profiles/$pname
+			git clone $url $BLESS_DIR/profiles/$pname >2/dev/null
+		fi
+	fi
+}
+
+function buildUrl () {
+	declare local name="$1"
+	declare local host="$2"
+
+	echo "$host/$name.git"
+}

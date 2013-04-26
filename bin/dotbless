@@ -9,6 +9,7 @@ declare -a BLESS_ARGS=( "$@" )
 ## loader
 function require () {
 	local root=$BLESS_DIR/lib/$1
+	local die=$2
 	if test -f $root/index; then 
 		root=$root/index;
 	elif test -f $root/init; then 
@@ -21,9 +22,21 @@ function require () {
 		source $root;
 		return 0
 	else
-		declare  local command="$(commandFromPath "$1")"
-		echo "dotbless: '${command}' is not a dotbless command. See 'dotbless --help'".
-		return 1
+		declare local command="$(commandFromPath "$1")";
+		declare -a local commandArray=( $(stringToArray "${command}") )
+
+		if [ "${command:0:1}" = "-" ]; then
+			declare local type="flag"
+		else
+			declare local type="command"
+		fi
+
+		if [ "$die" != false ]; then
+			invalidCommand "$command" "$type" 
+			return 1
+		fi
+
+		false
 	fi
 }
 
@@ -55,15 +68,24 @@ case "${BLESS_ARGS[0]}" in
 
 	## init completions
 	--init-completions )
-echo 'function _dotbless_completions_ () {
-	local completions word words cur last;
+echo '#!/bin/bash
+COMP_WORDBREAKS=${COMP_WORDBREAKS/=/}
+COMP_WORDBREAKS=${COMP_WORDBREAKS/@/}
+export COMP_WORDBREAKS
+function _dotbless_completions_ () {
+	local completions word words cur last files
 
   COMPREPLY=();
   word="${COMP_WORDS[COMP_CWORD]}";
-  cur=$(expr $COMP_CWORD - 1);
+  cur=$(expr $COMP_CWORD - 2);
+  declare -a files=( $(ls .) )
 
-  if [ "$word" == "--completion" ]; then
+  ## if the word is --completion then
+  ## it is assumed to be have been called
+  ## internally
+  if [ "${word:0:1}" == "-" ]; then
   	return 0;
+  ## for a single word completion
   elif [ "$COMP_CWORD" -eq 1 ]; then
     COMPREPLY=( $(compgen -W "$(dotbless --completions)" -- "$word") );
   else

@@ -66,7 +66,7 @@ function setupInit () {
 	echo "Installing system requirements..";
 	## loop and install each
 	for requirement in ${requirements[@]}; do
-		if ! hasCommand "$requirement"; then
+		if ! hasInternalCommand "$requirement"; then
 			echo
 			echo "$pkgmngr[$requirement] :: installing.."
 

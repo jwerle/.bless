@@ -53,6 +53,35 @@ case "${BLESS_ARGS[0]}" in
 		BlessUsage
 	;;
 
+	## init completions
+	--init-completions )
+echo 'function _dotbless_completions_ () {
+	local completions word words cur last;
+
+  COMPREPLY=();
+  word="${COMP_WORDS[COMP_CWORD]}";
+  cur=$(expr $COMP_CWORD - 1);
+
+  if [ "$word" == "--completion" ]; then
+  	return 0;
+  elif [ "$COMP_CWORD" -eq 1 ]; then
+    COMPREPLY=( $(compgen -W "$(dotbless --completions)" -- "$word") );
+  else
+    declare -a words=(${COMP_WORDS[@]});
+
+    unset words[0];
+    unset words[$COMP_CWORD];
+
+    completions=$(dotbless --completions "${words[@]:$cur}");
+    COMPREPLY=( $(compgen -W "$completions" -- "$word") );
+  fi
+}
+
+# enable completions
+complete -F _dotbless_completions_ dotbless'
+
+	;;
+
 	## exit alias
 	exit )
 		exit 0

@@ -133,3 +133,16 @@ function lastCommand () {
 
 	echo ${clean[ $(expr ${#clean[@]} - 1) ]}
 }
+
+function getArgs () {
+	local value found
+	found=false
+	declare -a args=( ${BLESS_ARGS[@]} )
+	declare -a clean=()
+	declare -i len=${#args[@]}
+
+	for (( i = 0; i < $len; i++ )); do
+		if [ "${args[$i]}" = "$1" ]; then break; fi
+	done
+	echo ${args[@]:$(expr $i + 1)}
+}

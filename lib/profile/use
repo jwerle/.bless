@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+function useInit () {
+	declare -a local args=( $(getArgs use) )
+	
+}

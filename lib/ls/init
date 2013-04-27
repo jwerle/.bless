@@ -12,15 +12,20 @@ function lsItems () {
 	local name description author version remote
 	declare local what="$1"
 	declare local where="$2"
-	declare -a local items=$(ls $BLESS_DIR/$where)
+	declare -a local items=( $(ls "$BLESS_DIR/$where") )
+	
+	if isNull "$items"; then
+		declare local item=$(ls "$BLESS_DIR/$where")
+		items=( "$item" )
+	fi
 
-	for item in ${items[@]}; do
-		declare local conf;
+	for item in "${items[@]}"; do
 		declare local __dirname="$BLESS_DIR/$where/$item"
-		conf=$(resolveConf $item $where)
+		declare local conf=$(resolveConf "$item" "$where")
+
 		if ! [ "$conf" ]; then continue; fi
 
-		bless.IniParser $conf
+		bless.IniParser "$conf"
 		bless.section.$what
 
 		## only output name

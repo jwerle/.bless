@@ -250,10 +250,12 @@ function lastElement () {
 function resolveConf () {
 	declare local what="$1"
 	declare local where="$2"
-	if test -f "$BLESS_DIR/$where/$what/$what.conf"; then
-		echo "$BLESS_DIR/$where/$what/$what.conf"
-	elif test -f "$BLESS_DIR/$where/$what/$what.ini"; then
-		echo "$BLESS_DIR/$where/$what/$what.ini"
+	declare local name="${what/.conf/}"
+	
+	if test -f "$BLESS_DIR/$where/$what/$name.conf"; then
+		echo "$BLESS_DIR/$where/$what/$name.conf"
+	elif test -f "$BLESS_DIR/$where/$what/$name.ini"; then
+		echo "$BLESS_DIR/$where/$what/$name.ini"
 	else
 		false
 	fi

@@ -14,7 +14,7 @@ function installInit () {
 	if requestingHelp || isNull $package; then
 		Usage "install <package>" $empty $empty
 	else
-		coreInstall $package "install" "bless_modules"
+		coreInstall $package "package" "bless_modules"
 	fi
 }
 
@@ -29,6 +29,12 @@ function coreInstall () {
 	else
 		host="https://github.com"
 	fi
+	declare local slash="/"
+
+	if [[ "$name" != *"$slash"* ]]; then
+		declare local name="dotbless/$name"
+	fi
+
 
 	declare local url=$(buildRemoteUrl $name $host)
 	declare -a local parts=( $(commandFromPath "$name") )
@@ -54,7 +60,7 @@ function coreInstall () {
 
 		if [ "$conf" ]; then
 			bless.IniParser $conf
-			bless.section.package
+			bless.section.$type
 			echo "install: Installing ${name} (${author}) - ${version}"
 			echo "install: Installing dependencies"
 			if ! isNull $dependencies; then
@@ -67,9 +73,11 @@ function coreInstall () {
 			fi
 			
 			echo "install: Installing '${pname}'"
-			bless.section.main
-			if ! isNull "$install"; then
-				echo "install:" $(eval $(echo $install))
+			if type -type bless.section.main >/dev/null 2>&1; then 
+				bless.section.main
+				if ! isNull "$install"; then
+					echo "install:" $(eval $(echo $install))
+				fi
 			fi
 		fi
 	fi

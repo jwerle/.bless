@@ -8,4 +8,4 @@ source ./blessed
 dotbless setup
 dotbless install bats
 dotbless install repl
-dotbless profile install default
+dotbless profile install default.conf

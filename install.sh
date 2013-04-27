@@ -1,3 +1,10 @@
 #!/usr/bin/env bash
+if test -d ~/.bless; then
+	rm ~/.bless
+fi
+
 ln -s `pwd` ~/.bless
-exec $SHELL
+source ./blessed
+dotbless setup
+dotbless install bats
+dotbless install repl

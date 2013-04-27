@@ -4,4 +4,4 @@ export PATH="$HOME/.bless/bin:$PATH"
 ## init
 eval "$(dotbless --init-completions)"
 
-dotbless profile use werle
+dotbless profile use default

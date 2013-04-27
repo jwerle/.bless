@@ -6,7 +6,11 @@ lib-cov
 *.out
 *.pid
 *.gz
-
+profiles/
+bless_modules/
+node_modules/
+bin/*
+~bin/dotbless
 pids
 logs
 results

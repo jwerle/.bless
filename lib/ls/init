@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+require "profile/colors"
+function lsUsage () {
+	echo "	List all installed Bless packages"
+}
+
+function lsInit () {
+	lsItems "package" "bless_modules"
+}
+
+function lsItems () {
+	local name description author version remote
+	declare local what="$1"
+	declare local where="$2"
+	declare -a local items=$(ls $BLESS_DIR/$where)
+
+	for item in ${items[@]}; do
+		declare local conf;
+		declare local __dirname="$BLESS_DIR/$where/$item"
+		conf=$(resolveConf $item $where)
+		if ! [ "$conf" ]; then continue; fi
+
+		bless.IniParser $conf
+		bless.section.$what
+
+		## only output name
+		if hasFlag "-n" || hasFlag "names"; then
+			echo $name
+		else
+			echo $(color fg green)"[$name]"$(color end) "-" '"'$description'"'
+			echo "    author  :" $author
+			echo "    version :" $version
+			echo "    remote  :" $remote
+			echo "---"
+		fi
+	done
+}

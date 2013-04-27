@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+require "profile/colors"
+
+function infoUsage () {
+	echo "Show information about a profile"
+}
+
+function infoInit () {
+	declare -a local args=( $(getArgs info) )
+	declare -a local empty=()
+	declare local profile="${args[0]}"
+	declare local path=$(flagValue "path")
+
+	echo ${args}
+
+	if isNull $profile || requestingHelp; then
+		Usage "profile info <profile-name>" $empty $empty ""
+	else
+		declare local conf=$(resolveConf $profile "profiles")
+		bless.IniParser $conf
+		if ! isNull $path; then
+			declare -a local parts=( $(strsplit $path ".") )
+			declare local section="${parts[0]}"
+
+			echo
+			echo ${parts[0]}
+
+			#bless.section.$section
+			#echo "$name"
+		fi
+	fi
+}

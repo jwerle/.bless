@@ -1,18 +1,34 @@
 #!/usr/bin/env bash
 function flagsInit () {
-	local flags
-	declare -a flags=("--version" "--help")
-	echo ${flags[@]}
+	echo "\n"
 }
 
 function flagsUsage () {
-	case "$1" in
-		--version|-v )
-			echo "Output the version number"
-		;;
+	declare local flag="$1"
 
-		--help|-h )
-			echo "Output usage information"
-		;;
-	esac
+	if isNull $flag; then 
+		echo "";
+	else
+		if [[ "$flag" = *,* ]]; then
+			declare -a local parts=( $(strsplit "$flag" ",") )
+			flag="${parts[0]}"
+		fi
+
+		case "$flag" in
+			--verbose|-v )
+				echo "Output verbose information. Useful for debugging"
+			;;
+			--version|-v )
+				echo "Output the version number"
+			;;
+
+			--help|-h )
+				echo "	Output usage information"
+			;;
+
+			--pretty )
+				echo "	Output with some style"
+			;;
+		esac
+	fi
 }

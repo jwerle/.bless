@@ -21,6 +21,6 @@ function CompletionList () {
 }
 
 function CompletionExcluded () {
-	declare -a local excluded=( "init" "completion" "bless" "commands" "flags" "scripts" "profiles" "help" )
+	declare -a local excluded=( "init" "completion" "bless" "commands" "flags" "scripts" "profiles" "help" "verbose" ) 
 	echo "${excluded[@]}"
 }

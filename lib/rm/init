@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+##
+# rm Usage
+##
+function rmUsage () {
+	echo "	Remove dotbless modules";
+}
+
+function rmInit () {
+	declare -a local args=( $(getArgs rm) )
+	declare local module="${args[0]}"
+	declare -a local empty=()
+	if requestingHelp || isNull $module; then
+		Usage "rm <module>" $empty $empty
+	else
+		coreRm $module false "bless_modules"
+	fi
+}
+
+function coreRm () {
+	declare local name="$1"
+	declare local type="$2"
+	declare local where="$3"
+
+	if hasItem "$name" "$where"; then
+		echo "Removing module ${name}.."
+		removeItem "$name" $where
+		if test -f $BLESS_DIR/bin/$name; then
+			echo "Removing bin file 'bin/$name'.."
+			rm $BLESS_DIR/bin/$name
+		fi
+	else
+		echo "Failed to remove '$name' in '$where'"
+	fi
+}

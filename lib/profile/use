@@ -14,7 +14,7 @@ function useInit () {
 		Usage "profile use <profile-name>" $empty $empty
 	else
 		## read and parse profile conf
-		declare local conf=$(resolveProfileConf $profile)
+		declare local conf=$(resolveConf $profile "profiles")
 
 		if ! [ "$conf" ]; then
 			## output fatal message
@@ -25,9 +25,9 @@ function useInit () {
 		bless.section.profile
 		if ! [[ -z $main ]]; then
 			declare local path="$BLESS_DIR/profiles/$profile"
-			echo $path/$main
 			if test -f $path/$main; then
-				echo $main;
+				declare local __dirname=$path
+				source $path/$main;
 			fi
 		fi
 	fi

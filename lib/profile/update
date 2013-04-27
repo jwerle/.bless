@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
+require "update"
+function updateCompletions () {
+	echo "--pretty" "$(dotbless profile ls -n)"
+}
 
 function updateUsage () {
 	echo "Updates all profiles from their remote repositories"
+}
+
+function updateInit () {
+	updateItem "profiles" "profile"
 }

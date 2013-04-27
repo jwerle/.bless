@@ -16,6 +16,10 @@ function fatal () {
 	die "$1" 1
 }
 
+function isNull () {
+	[[ -z "$1" ]] && true || false
+}
+
 function hasInternalCommand () {
 	if command -v $1 >/dev/null 2>&1; then true;
 	else false;
@@ -46,7 +50,11 @@ function hasCommand () {
 
 function flagValue () {
 	local flag value found
-	flag="--$1"
+	if ! [ "${1:0:1}" = "-" ]; then
+		declare local flag="--${1}"
+	else
+		declare local flag="${1}"
+	fi
 	found=false
 	for arg in ${BLESS_ARGS[@]}; do
 		if $found; then
@@ -58,6 +66,8 @@ function flagValue () {
 			found=true;
 		fi
 	done
+
+	false
 }
 
 function getRequirements () {
@@ -115,6 +125,7 @@ function Usage () {
 	if $hasParent && [ "$command" != "dotbless" ]; then
 		parent="$command "
 	fi
+
 	echo
 	printf "  Usage: $command "
 
@@ -150,6 +161,11 @@ function Usage () {
 
 function commandFromPath () {
 	echo $(echo "$1" | tr "/" " ")
+}
+
+function strsplit () {
+	declare -a local array=( $(echo "$1" | tr "$2" " ") )
+	echo ${array[@]}
 }
 
 function lastCommand () {
@@ -214,13 +230,14 @@ function invalidCommand () {
 }
 
 function inArray () {
-	declare -a local array=$1
-	echo ${1}
-	declare local needle="$2"
+	declare -a local array=("${!2}")
+	declare local needle="$1"
 	for item in  ${array[@]}; do
-		echo $item
-		echo $needle
+		if [ "$item" = "$needle" ]; then
+			return 0
+		fi
 	done
+	return 1
 }
 
 function lastElement () {
@@ -230,16 +247,33 @@ function lastElement () {
 }
 
 
-function resolveProfileConf () {
-	declare local profile="$1"
-	if test -f "$BLESS_DIR/profiles/$profile/$profile.conf"; then
-		echo "$BLESS_DIR/profiles/$profile/$profile.conf"
-	elif test -f "$BLESS_DIR/profiles/$profile/$profile.ini"; then
-		echo "$BLESS_DIR/profiles/$profile/$profile.ini"
+function resolveConf () {
+	declare local what="$1"
+	declare local where="$2"
+	if test -f "$BLESS_DIR/$where/$what/$what.conf"; then
+		echo "$BLESS_DIR/$where/$what/$what.conf"
+	elif test -f "$BLESS_DIR/$where/$what/$what.ini"; then
+		echo "$BLESS_DIR/$where/$what/$what.ini"
 	else
 		false
 	fi
 }
+
+function resolveItemPath () {
+	declare local what="$1"
+	declare local where="$2"
+	declare local verbose=$3
+	if test -d "$BLESS_DIR/$where/$what"; then
+		echo "$BLESS_DIR/$where/$what"
+	else 
+		if [ "$verbose" ]; then
+			echo "$BLESS_DIR/$where/$what"
+		else
+			false
+		fi
+	fi
+}
+
 
 ## 
 # CFG INI Parser
@@ -262,6 +296,7 @@ function bless.IniParser ()
   ini=( ${ini[*]/%\\ \)/ \\} ) # the multiline trick
   ini=( ${ini[*]/%\( \)/\(\) \{} ) # convert text2function (2)
   ini=( ${ini[*]/%\} \)/\}} ) # remove extra parenthesis
+#echo ${ini[*]}
   ini[0]="" # remove first element
   ini[${#ini[*]} + 1]='}'    # add the last brace
   #echo "${ini[*]}" # eval the result
@@ -293,3 +328,38 @@ function bless.IniWriter ()
 # bless.section.alias
 # echo $name
 # exit;
+
+function buildRemoteUrl () {
+	declare local name="$1"
+	declare local host="$2"
+
+	echo "$host/$name.git"
+}
+
+function hasItem () {
+	declare local item="$1"
+	declare local where="$2"
+	declare -a local items=( $(ls ${BLESS_DIR}/${where}))
+	if inArray "$item" items[@]; then
+		true;
+	else
+		false
+	fi
+}
+
+function removeItem () {
+	declare local item="$1"
+	declare local where="$2"
+	declare local path="${BLESS_DIR}/${where}/${item}"
+
+	if test -d "$path"; then
+		if hasFlag "interactive" || hasFlag "-i"; then
+			rm -rfi "$path"
+		else
+			rm -rf "$path"
+		fi
+		true
+	else
+		false
+	fi
+}

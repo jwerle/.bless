@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+require "profile/colors"
+
+function verbose () {
+	declare local message="$1"
+	declare local color=$2
+	declare local bg=$3
+	printf "  -verbose: "
+	if ! isNull $color; then
+		if [ "$bg" ]; then
+			printf $(color bg $color)"${message}"
+		else
+			printf $(color fg $color)"${message}"
+		fi
+	else
+		printf $(color underline)"${message}"
+	fi
+	echo $(color end)
+}

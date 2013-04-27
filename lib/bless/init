@@ -27,7 +27,7 @@ require "flags"
 function BlessUsage () {
 	local name="dotbless"
 	declare -a local commands=( $(BlessListCommands) )
-	declare -a local flags=( $(dotbless flags) )
+	declare -a flags=("--version,-v" "--help,-h" "--pretty")
 	Usage $name commands[@] flags[@]
 }
 
@@ -51,6 +51,7 @@ function BlessCommand () {
 	
 	if ! [[ -z "$BLESS_ARGS" ]]; then
 		if [ ${BLESS_ARGS[0]:0:1} != "-" ] &&
+			 [[ ${BLESS_ARGS[0]:0:1} =~ "^[0-9]+$" ]] &&
 			 [ ${BLESS_ARGS[0]:0:1} != "<" ] &&
 			 [ ${BLESS_ARGS[0]:0:1} != ">" ]; 
 			then unset ${BLESS_ARGS[0]};
@@ -66,7 +67,7 @@ function BlessCommand () {
 	if [[ $RET ]]; then
 		tail=$(lastCommand args[@])
 		declare local	oldTail=$tail
-		
+
 		if [ "$tail" != "$command" ]; then
 			## loop until we find a proper require of a command
 			while ! require "${command}/${tail}" false; do
@@ -96,6 +97,8 @@ function BlessCommand () {
 			#echo $tail
 			if [[ $(type -t "${tail}Completions") = "function" ]]; then
 				commands+=($(${tail}Completions))
+			elif [[ $(type -t "${command}Completions") = "function" ]]; then
+				commands+=($(${command}Completions))
 			fi
 
 			# loop and remove commands that appear in the excluded array
@@ -122,6 +125,11 @@ function BlessCommand () {
 		elif [[ $(type -t "${tail}Init") = "function" ]]; then
 			## call it!
 			${tail}Init;
+
+			exit 0
+		elif [[ $(type -t "${command}Init") = "function" ]]; then
+			## call it!
+			${command}Init;
 
 			exit 0
 		fi

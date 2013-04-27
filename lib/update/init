@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+require "verbose"
+require "profile/colors"
+
+function updateCompletions () {
+	if isNull "${BLESS_ARGS[1]}"; then
+		echo "--pretty" "$(dotbless ls -n)"
+	elif isNull "${BLESS_ARGS[3]}" ** [ "${BLESS_ARGS[3]}" = *--pretty*] ; then
+		echo "--pretty";
+	else
+		ls
+	fi
+}
+
+function updateUsage () {
+	echo "Update a bless package"
+}
+
+function updateInit () {
+	updateItem "bless_modules" "package"
+}
+
+function updateItem () {
+	declare local where="$1"
+	declare local type="$2"
+	declare -a local args=( $(getArgs update) )
+	declare local package="${args[0]}"
+	declare -a local commands=()
+	declare -a local flags=(
+		'--verbose,-v' '--pretty'
+	)
+
+	if requestingHelp || [[ -z $package ]]; then
+		Usage "update <package>" commands[@] flags[@]
+	else
+		declare local pkgpath=$(resolveItemPath $package $where)
+		
+		if ! [ $pkgpath ]; then 
+			echo "update: Couldn't find anything for '$package' in '$where'"
+			if hasFlag "verbose"; then
+				if hasFlag "pretty"; then
+					verbose "Expected '$package' to be at '$(resolveItemPath $package $where true)'" "yellow"
+				else
+					verbose "Expected '$package' to be at '$(resolveItemPath $package $where true)'"
+				fi
+			fi
+			false
+		fi
+		if hasFlag "pretty"; then
+			echo "update: Updating $(color fg magenta)'$package'..."$(color end)
+		else
+			echo "update: Updating '$package'..."
+		fi
+
+		if hasFlag "verbose"; then
+			if hasFlag "pretty"; then
+				verbose "update: path set to => $pkgpath" "cyan"
+			else
+				verbose "update: path set to => $pkgpath"
+			fi
+
+			if hasFlag "pretty"; then
+				verbose "cd '$pkgpath'" "cyan"
+				verbose "git pull origin master" "cyan"
+			else
+				verbose "cd '$pkgpath'"
+				verbose "git pull origin master"
+			fi
+		fi
+
+		if hasFlag "verbose"; then
+			verbose "[git]:" "white"
+			echo "--"
+			echo "$(
+				cd ${pkgpath};
+				git pull origin master
+			)";
+			echo "--"
+		else
+			$(
+				cd "$pkgpath";
+				git pull origin master >/dev/null 2>&1;
+			);
+		fi
+
+		declare local conf=$(resolveConf $package $where)
+		declare local __dirname="$BLESS_DIR/$where/$package"
+
+		if [ "$conf" ]; then
+			bless.IniParser $conf
+			bless.section.main
+			if ! isNull "$update"; then
+				echo "update: Running update"
+				
+				if hasFlag "verbose"; then
+					verbose $(echo "${update}")
+				fi
+
+				echo "update: "$(eval $(echo $update))
+			fi
+		fi
+
+		if hasFlag "verbose"; then
+			verbose "ok" "blue"
+		else
+			echo "update: OK"
+		fi
+	fi
+}

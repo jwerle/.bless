@@ -10,9 +10,10 @@ function consoleUsage () {
 # Console init
 ##
 function consoleInit () {
+	declare local repl="$BLESS_DIR/bin/repl"
 	if hasFlag "debug"; then
-		repl dotbless --debug
+		$repl dotbless --debug
 	else
-		repl dotbless
+		$repl dotbless
 	fi
 }

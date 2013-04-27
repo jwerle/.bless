@@ -45,14 +45,37 @@ function require () {
 ## 
 require "bless"
 
+## check that everything is installed
+checkPrereqs	
 
+
+if hasFlag "pretty"; then
+	require "profile/colors"
+	declare local color="$(flagValue color)"
+	
+	if  isNull $color; then
+		color="blue"
+	fi
+
+	echo $(color fg "$color")
+fi
 ## commands
 case "${BLESS_ARGS[0]}" in
+	## exit alias
+	exit )
+		exit 0
+	;;
+
 	## output completions
 	--completions )
 		## shift off the first element
 		unset BLESS_ARGS[0]
 		CompletionList ${BLESS_ARGS[@]}
+	;;
+
+	## show excluded flags/commands
+	--show-excluded-help )
+		BlessUsage true
 	;;
 	
 	## output version
@@ -101,17 +124,11 @@ function _dotbless_completions_ () {
 
 # enable completions
 complete -F _dotbless_completions_ dotbless'
-
-	;;
-
-	## exit alias
-	exit )
-		exit 0
 	;;
 
 	## catch all
 	* )
-		if [[ -z ${BLESS_ARGS[@]} ]]; then
+		if ([[ -z ${BLESS_ARGS[@]} ]] || hasFlag "pretty" || hasFlag "color") && [ "${#BLESS_ARGS[@]}" -le 1 ]; then
 			BlessUsage
 		else
 			BlessCommand ${BLESS_ARGS[0]}

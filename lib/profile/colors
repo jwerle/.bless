@@ -18,22 +18,31 @@ function colorsInit () {
 		"magenta" "cyan" "white" "gray"
 	)
 
-	if [[ "${#args[@]}" -eq 1 ]] && requestingHelp; then
-		Usage "profile colors - outputs builtin background and foreground colors " $empty $empty
-		exit 0
-	fi
+	if ([[ "${#args[@]}" -eq 1 ]] && requestingHelp) || [[ -z "${args[@]}" ]]; then
+		Usage "profile colors <color>" $empty $empty
 	
-	echo
-	echo "dotbless profile colors"
-	echo
-	echo "[Foreground colors] |"  "[Background colors]"
-	for color in ${colors[@]}; do
-		echo "--------------------  -------------------"
-		printf "$(color fg $color)$color$(color end)"
-		printf "		    | "
-		printf "$(color bg $color)$color$(color end)"
 		echo
-	done
+		echo
+		echo "[Foreground] |"  "[Background]"
+		for color in ${colors[@]}; do
+			echo "---------------------------"
+			printf "$(color fg $color)$color$(color end)"
+			printf "	     | "
+			printf "$(color bg $color)$color$(color end)"
+			echo
+		done
+		echo "---------------------------"
+		exit 0
+	else
+		declare local color=${args[0]}
+		if inArray $color colors[@]; then
+			if hasFlag "bg"; then
+				printf $(color bg $color)
+			else
+				printf $(color fg $color)
+			fi
+		fi
+	fi
 	
 }
 

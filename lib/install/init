@@ -3,10 +3,74 @@
 # Install Usage
 ##
 function installUsage () {
-	echo "Install dotbless or third-party packages";
+	echo "Install dotbless packages";
 }
 
 function installInit () {
-	## check that everything is installed
-	checkPrereqs	
+	declare -a local args=( $(getArgs install) )
+	declare local package="${args[0]}"
+	declare -a local empty=()
+
+	if requestingHelp || isNull $package; then
+		Usage "install <package>" $empty $empty
+	else
+		coreInstall $package "install" "bless_modules"
+	fi
+}
+
+function coreInstall () {
+	declare local name="$1"
+	declare local type="$2"
+	declare local where="$3"
+	declare local host;
+
+	if hasFlag "host"; then
+		host="$(flagValue host)";
+	else
+		host="https://github.com"
+	fi
+
+	declare local url=$(buildRemoteUrl $name $host)
+	declare -a local parts=( $(commandFromPath "$name") )
+	declare local pname="$(lastElement parts[@])"
+
+	if test -d $BLESS_DIR/$where/$pname &&
+		 test -f $BLESS_DIR/$where/$pname/$pname.conf &&
+		 ! hasFlag "force";
+		 then
+		 echo
+		 echo "dotbless: $type '${pname}' is already installed."
+		 echo "dotbless: Use dotbless $type update ${pname} to update it";
+		 exit 0
+	else
+		echo "install: Installing ${pname}..."
+		(test -d "$BLESS_DIR/$where") || mkdir $BLESS_DIR/$where
+		(test -d "$BLESS_DIR/$where/$pname") && rm -rf $BLESS_DIR/$where/$pname
+		mkdir $BLESS_DIR/$where/$pname
+		git clone $url $BLESS_DIR/$where/$pname
+
+		declare local __dirname="$BLESS_DIR/$where/$pname"
+		declare local conf=$(resolveConf $pname $where)
+
+		if [ "$conf" ]; then
+			bless.IniParser $conf
+			bless.section.package
+			echo "install: Installing ${name} (${author}) - ${version}"
+			echo "install: Installing dependencies"
+			if ! isNull $dependencies; then
+				declare -a local dependencies=( $(strsplit "$dependencies" " ") )
+				for dependency in ${dependency[@]}; do
+					if ! hasInternalCommand "$dependency"; then
+						die "install: Missing dependency '${dependency} for '${pname}'"
+					fi
+				done
+			fi
+			
+			echo "install: Installing '${pname}'"
+			bless.section.main
+			if ! isNull "$install"; then
+				echo "install:" $(eval $(echo $install))
+			fi
+		fi
+	fi
 }

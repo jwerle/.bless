@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+require "rm"
+##
+# rm Usage
+##
+function rmUsage () {
+	echo "	Remove dotbless profiles";
+}
+
+function rmInit () {
+	declare -a local args=( $(getArgs rm) )
+	declare local module="${args[0]}"
+	declare -a local empty=()
+	if requestingHelp || isNull $module; then
+		Usage "rm <module>" $empty $empty
+	else
+		coreRm $module "profile" "profiles"
+	fi
+}

@@ -13,10 +13,12 @@ function CompletionList () {
 
 	if [ "$1" == "all" ]; then # output all commands
 		echo ${libs[@]}
+		echo $(moduleCommands)
 	elif [[ ! -z "${BLESS_ARGS[@]}" ]]; then # output completions for a given command
 		echo $(dotbless ${BLESS_ARGS[@]} --completions)
 	else
 		echo $(dotbless flags) ${libs[@]} # output flags and completions
+		echo $(moduleCommands)
 	fi
 }
 

@@ -62,12 +62,12 @@ function coreInstall () {
 			bless.IniParser $conf
 			bless.section.$type
 			echo "install: Installing ${name} (${author}) - ${version}"
-			echo "install: Installing dependencies"
+			echo "install: Checking dependencies.."
 			if ! isNull $dependencies; then
 				declare -a local dependencies=( $(strsplit "$dependencies" " ") )
 				for dependency in ${dependency[@]}; do
 					if ! hasInternalCommand "$dependency"; then
-						die "install: Missing dependency '${dependency} for '${pname}'"
+						die "install: error: Missing dependency '${dependency} for '${pname}'"
 					fi
 				done
 			fi
@@ -76,7 +76,13 @@ function coreInstall () {
 			if type -type bless.section.main >/dev/null 2>&1; then 
 				bless.section.main
 				if ! isNull "$install"; then
-					echo "install:" $(eval $(echo $install))
+					if test -f "$install"; then
+						echo "install: Running install script ($install)"
+						declare RUN_INSTALL=true
+						runcommand $install
+					else
+						echo "install:" $(eval $(echo $install))
+					fi
 				fi
 			fi
 		fi

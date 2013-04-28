@@ -33,10 +33,21 @@ function lsItems () {
 			echo $name
 		else
 			echo $(color fg green)"[$name]"$(color end) "-" '"'$description'"'
-			echo "    author  :" $author
-			echo "    version :" $version
-			echo "    remote  :" $remote
+			if ! isNull $author; then
+				echo "    author  :" $author
+			fi
+			if ! isNull $version; then
+				echo "    version :" $version
+			fi
+			if ! isNull $remote; then
+				echo "    remote  :" $remote
+			fi
+			if ! isNull $rc; then
+				echo "    rc      :" $rc
+			fi
 			echo "---"
 		fi
+
+		unset name description author version remote rc
 	done
 }

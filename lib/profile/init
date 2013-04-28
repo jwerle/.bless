@@ -34,7 +34,7 @@ function profileInit () {
 	if [[ -z "$command" ]] || requestingHelp; then
 		Usage "profile" commands[@] flags[@] true
 	else
-		if ! inArray "$command" ${commands[@]}; then
+		if ! inArray "$command" commands[@]; then
 			invalidCommand "profile $command"
 			exit 1
 		else

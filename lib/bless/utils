@@ -12,18 +12,34 @@ function die () {
 	fi
 }
 
+export -f die
+
 function fatal () {
 	die "$1" 1
 }
+
+export -f fatal
 
 function isNull () {
 	[[ -z "$1" ]] && true || false
 }
 
+export -f isNull
+
 function hasInternalCommand () {
 	if command -v $1 >/dev/null 2>&1; then true;
 	else false;
 	fi
+}
+
+function commands () {
+	declare -a local clean=()
+	for arg in ${BLESS_ARGS[@]}; do
+		if [ "${arg:0:1}" != "-" ]; then
+			clean+=( "$args" )
+		fi
+	done
+	${clean[@]}
 }
 
 function hasFlag () {
@@ -40,6 +56,7 @@ function hasFlag () {
 	$found
 }
 
+export -f hasFlag
 function hasCommand () {
 	declare local found=false
 	for arg in ${BLESS_ARGS[@]}; do
@@ -48,12 +65,14 @@ function hasCommand () {
 	$found
 }
 
+export -f hasCommand
+
 function flagValue () {
 	local flag value found
 	if ! [ "${1:0:1}" = "-" ]; then
-		declare local flag="--${1}"
+		declare flag="--${1}"
 	else
-		declare local flag="${1}"
+		declare flag="${1}"
 	fi
 	found=false
 	for arg in ${BLESS_ARGS[@]}; do
@@ -69,6 +88,8 @@ function flagValue () {
 
 	false
 }
+
+export -f flagValue
 
 function getRequirements () {
 	local commands
@@ -197,14 +218,16 @@ function lastCommand () {
 function getArgs () {
 	local value found
 	found=false
-	declare -a args=( ${BLESS_ARGS[@]} )
 	declare -a clean=()
-	declare -i len=${#args[@]}
+	declare -i len=${#BLESS_ARGS[@]}
+	declare -i i;
 
 	for (( i = 0; i < $len; i++ )); do
-		if [ "${args[$i]}" = "$1" ]; then break; fi
+		if [ "${BLESS_ARGS[$i]}" = "$1" ]; then break; fi
 	done
-	echo ${args[@]:$(expr $i + 1)}
+
+	i=$(expr $i + 1)
+	echo ${BLESS_ARGS[@]:$i}
 }
 
 function requestingHelp () {
@@ -221,6 +244,10 @@ function stringToArray () {
 function invalidCommand () {
 	declare local command=$1
 	declare local type=$2
+	declare -a local parts=( $(strsplit "$command" " ") )
+	if [ "${parts[0]}" = "${parts[1]}" ]; then
+		command="${parts[0]}"
+	fi
 
 	if [[ -z "$type" ]]; then
 		type="command"
@@ -364,4 +391,52 @@ function removeItem () {
 	else
 		false
 	fi
+}
+
+function moduleCommands () {
+	declare -a local modules=( $(ls $BLESS_DIR/bless_modules) )
+	
+	for module in ${modules[@]}; do
+		declare local conf=$(resolveConf $module "bless_modules")
+		declare local __dirname="$BLESS_DIR/bless_modules/$module"
+		bless.IniParser $conf
+	#	echo $conf
+		if [[ $(type -t bless.section.package) = "function" ]]; then
+			bless.section.package
+			if $runcommand; then
+				echo $module
+				runcommand=false	
+			fi
+		fi
+	done
+}
+
+function isModule () {
+	declare -a local modules=$(dotbless ls -n)
+	for module in ${modules[@]}; do
+		if [ $module = "$1" ]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
+function isFunction () {
+	if [[ $(type -t $1) = "function" ]]; then
+		return 0
+	else return 1
+	fi
+}
+
+function load () {
+	if test -f "$BLESS_DIR/bless_modules/$1.sh"; then 
+		source "$BLESS_DIR/bless_modules/$1.sh"
+	elif test -f "$BLESS_DIR/bless_modules/$1"; then
+		source "$BLESS_DIR/bless_modules/$1"
+	fi
+}
+
+function runcommand () {
+	declare local __dirname="$(dirname $1)"
+	source $1
 }

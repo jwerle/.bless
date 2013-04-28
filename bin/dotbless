@@ -4,6 +4,7 @@ declare HOME_DIR=$(eval echo ~${USER})
 declare BLESS_DIR=$HOME_DIR/.bless
 declare BLESS_NODE_MODULES=$BLESS_DIR/node_modules
 declare BLESS_SCRIPTS=$BLESS_DIR/scripts
+declare -a BLESS_PATH=( "$BLESS_DIR/lib" )
 declare -a BLESS_ARGS=( "$@" )
 
 ## loader
@@ -20,7 +21,7 @@ function require () {
 
 	if test -f "$root"; then
 		source $root;
-		return 0
+		true
 	else
 		declare local command="$(commandFromPath "$1")";
 		declare -a local commandArray=( $(stringToArray "${command}") )
@@ -31,12 +32,7 @@ function require () {
 			declare local type="command"
 		fi
 
-		if [ "$die" != false ]; then
-			invalidCommand "$command" "$type" 
-			return 1
-		fi
-
-		false
+		
 	fi
 }
 
